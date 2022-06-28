@@ -100,8 +100,8 @@ class HistoricCSVDataHandler(DataHandler):
             self.symbol_data[s] = pd.read_csv(
                 os.path.join(self.csv_dir, f'{s}.csv'), # os.path.join() make arguments to "csv_dir/s.csv"
                 header = 0, index_col = 0, parse_dates = True,
-                names = ['datetime', 'open', 'high', # rename the columns
-                         'low', 'close', 'volume', 'adj_close']).sort()
+                names = ['datetime', 'open', 'high',
+                         'low', 'close', 'adj_close','volume']).sort_index() # rename the columns
 
             # Combine the index to ffill forward values
             if comb_index is None:
@@ -115,7 +115,7 @@ class HistoricCSVDataHandler(DataHandler):
         # Reindex the dataframes
         for s in self.symbol_list:
             self.symbol_data[s] = self.symbol_data[s].reindex(index=comb_index, # 利用reindex重排資料
-                                                              method='ffill').iterrows()
+                                                              method='ffill').iterrows() # 生成generator
     # _get_new_bar() is a generator which will create an iterator
     def _get_new_bar(self, symbol):
         """
@@ -134,7 +134,7 @@ class HistoricCSVDataHandler(DataHandler):
             print("That symbol is not available in the historical data set.")
             raise
         else: # if no error
-            return bars_list.iloc[-1]
+            return bars_list[-1]
 
     def get_latest_bars(self, symbol, N=1):
         """
@@ -147,7 +147,7 @@ class HistoricCSVDataHandler(DataHandler):
             print("That symbol is not available in the historical data set.")
             raise # if error shut down program
         else:
-            return bars_list.iloc[-N:]
+            return bars_list[-N:]
 
     def get_latest_bar_datetime(self, symbol):
         """
@@ -159,7 +159,7 @@ class HistoricCSVDataHandler(DataHandler):
             print("That symbol is not available in the historical data set.")
             raise
         else:
-            return bars_list.iloc[-1, 0]
+            return bars_list[-1][0]
 
     def get_latest_bar_value(self, symbol, val_type):
         """
@@ -172,7 +172,7 @@ class HistoricCSVDataHandler(DataHandler):
             print("That symbol is not available in the historical data set.")
             raise
         else:
-            return bars_list.iloc[-1, :][val_type]
+            return getattr(bars_list[-1][1], val_type)
 
     def get_latest_bars_values(self, symbol, val_type, N=1):
         """
@@ -184,7 +184,7 @@ class HistoricCSVDataHandler(DataHandler):
             print("That symbol is not available in the historical data set.")
             raise
         else:
-            return bars_list.iloc[-N:, :][val_type]
+            return np.array([getattr(b[1], val_type) for b in bars_list])
 
     def update_bars(self): # for the Backtest.
         """

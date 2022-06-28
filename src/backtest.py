@@ -1,9 +1,7 @@
 import datetime
 import pprint
-try:
-    import Queue as queue
-except ImportError:
-    import queue
+
+import queue
 import time
 
 class Backtest(object):
@@ -100,22 +98,22 @@ class Backtest(object):
 
             time.sleep(self.heartbeat)
 
-def _output_performance(self):
-    """
-    Outputs the strategy performance from the backtest.
-    """
-    self.portfolio.create_equity_curve_dataframe()
+    def _output_performance(self):
+        """
+        Outputs the strategy performance from the backtest.
+        """
+        self.portfolio.create_equity_curve_dataframe()
 
-    print("Creating summary stats...")
-    stats = self.portfolio.output_summary_stats()
+        print("Creating summary stats...")
+        stats = self.portfolio.output_summary_stats()
 
-    print("Creating equity curve...")
-    print(self.portfolio.equity_curve.tail(10))
-    pprint.pprint(stats)
+        print("Creating equity curve...")
+        print(self.portfolio.equity_curve.tail(10))
+        pprint.pprint(stats)
 
-    print(f"Signals: {self.signals}")
-    print(f"Orders: {self.orders}")
-    print(f"Fills: {self.fills}")
+        print(f"Signals: {self.signals}")
+        print(f"Orders: {self.orders}")
+        print(f"Fills: {self.fills}")
 
 
     def simulate_trading(self):

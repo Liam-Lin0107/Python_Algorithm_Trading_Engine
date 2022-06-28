@@ -39,9 +39,11 @@ class Portfolio(object):
         self.symbol_list = self.bars.symbol_list
         self.start_date = start_date
         self.initial_capital = initial_capital
+
         self.all_positions = self.construct_all_positions()
-        self.current_positions = dict( (k,v) for k, v in \
-                                       [(s, 0) for s in self.symbol_list] )
+        self.equity_curve = None
+        self.current_positions = dict((k,v) for k, v in \
+                                       [(s, 0) for s in self.symbol_list])
         self.all_holdings = self.construct_all_holdings()
         self.current_holdings = self.construct_current_holdings()
 
@@ -84,7 +86,6 @@ class Portfolio(object):
 
         Makes use of a MarketEvent from the events queue.
         """
-
         latest_datetime = self.bars.get_latest_bar_datetime(
             self.symbol_list[0])
 
@@ -162,7 +163,6 @@ class Portfolio(object):
         """
         Updates the portfolio current positions and holdings from a FillEvent.
         """
-
         if event.type == 'FILL':
             self.update_positions_from_fill(event)
             self.update_holdings_from_fill(event)
@@ -186,15 +186,15 @@ class Portfolio(object):
         cur_quantity = self.current_positions[symbol]
         order_type = 'MKT'
 
-        if direction == 'LONG' and cur_quantity == 0:
+        if (direction == 'LONG') and (cur_quantity == 0):
             order = OrderEvent(symbol, order_type, mkt_quantity, 'BUY')
-        if direction == 'SHORT' and cur_quantity == 0:
+        if (direction == 'SHORT') and (cur_quantity == 0):
             order = OrderEvent(symbol, order_type, mkt_quantity, 'SELL')
 
-        if direction == 'EXIT' and cur_quantity > 0:
+        if (direction == 'EXIT') and (cur_quantity > 0):
             order = OrderEvent(symbol, order_type, abs(cur_quantity), 'SELL')
 
-        if direction == 'EXIT' and cur_quantity < 0:
+        if (direction == 'EXIT') and (cur_quantity < 0):
             order = OrderEvent(symbol, order_type, abs(cur_quantity), 'BUY')
 
         return order
@@ -213,7 +213,6 @@ class Portfolio(object):
         Creates a pandas DataFrame from the all_holdings
         list of dictionaries.
         """
-
         curve = pd.DataFrame(self.all_holdings)
         curve.set_index('datetime', inplace = True)
         curve['returns'] = curve['total'].pct_change()
@@ -232,9 +231,9 @@ class Portfolio(object):
         drawdown, max_dd, dd_duration = create_drawdowns(pnl)
         self.equity_curve['drawdown'] = drawdown
 
-        stats = [("Total Return", f"{(total_return - 1.0) * 100.0:.2f}"),
-                 ("Sharpe Ratio", f"{sharpe_ratio:.2f}"),
-                 ("Max Drawdown", f"{max_dd * 100.0:.2f}"),
-                 ("Drawdown Duration", f"{dd_duration:.2f}")]
+        stats = [("Total Return", f"{((total_return - 1.0) * 100.0):.2f}"),
+                 ("Sharpe Ratio", f"{(sharpe_ratio):.2f}"),
+                 ("Max Drawdown", f"{(max_dd * 100.0):.2f}"),
+                 ("Drawdown Duration", f"{(dd_duration):.2f}")]
         self.equity_curve.to_csv('equity.csv')
         return stats
